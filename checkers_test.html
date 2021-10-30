@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add WASM</title>
+    <style>
+        body {
+            background-color: rgb(255, 255, 255);
+        }
+    </style>
+</head>
+<body>
+<span class="container"></span>
+<script type="text/javascript">
+    async function init() {
+        try {
+            const res = await fetch('/wasm/checkers/func_test.wasm');
+            const buffer = await res.arrayBuffer();
+            const wasm = await WebAssembly.instantiate(buffer);
+
+            console.log('Loaded WASM module');
+
+            const instance = wasm.instance;
+            console.log('instance', instance);
+
+            const {
+                offsetForPosition,
+                isWhite,
+                isBlack,
+                isCrowned,
+                withCrown,
+                withoutCrown,
+                setPiece,
+                getPiece,
+                inRange
+            } = instance.exports;
+
+            const black = 1;
+            const white = 2;
+            const crownedBlack = 5;
+            const crownedWhite = 6;
+
+            console.log('calling offset');
+            const offset = offsetForPosition(3, 4);
+            console.log('offset for (3,4) is', offset); // 140
+
+            console.debug('White is white?', isWhite(white)); // 1
+            console.debug('Black is black?', isBlack(black)); // 1
+            console.debug('Black is not white?', isWhite(black)); // 0
+
+            console.debug('Uncrowned white', isWhite(withoutCrown(crownedWhite))); // 0
+            console.debug('Uncrowned black', isBlack(withoutCrown(crownedBlack))); // 0
+
+            console.debug('Crowned is crowned', isCrowned(crownedWhite)); // 1
+            console.debug('Crowned is crowned (b)', isCrowned(crownedBlack)); // 1
+
+            // Set white checker at (3,4)
+            setPiece(3, 4, 2);
+            const whitePiece = getPiece(3, 4);
+            console.debug('Got white piece?', isWhite(whitePiece));
+            console.debug('Is in range?', inRange(0, 7, whitePiece));
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

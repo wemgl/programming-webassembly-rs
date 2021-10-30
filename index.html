@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add WASM</title>
+</head>
+<body>
+<script type="text/javascript">
+    async function init() {
+        try {
+            const res = await fetch('/wasm/add_sexpr.wasm');
+            const buffer = await res.arrayBuffer();
+            const wasm = await WebAssembly.instantiate(buffer);
+            const { add } = wasm.instance.exports;
+            const result = add(3, 5);
+            console.log(`3 + 5 = ${result}`);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    init();
+</script>
+</body>
+</html>
