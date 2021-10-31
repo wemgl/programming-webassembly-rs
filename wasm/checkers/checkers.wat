@@ -1,6 +1,6 @@
 (module
     (import "events" "piecemoved"
-            (func $notify_piecemoved (param $fromX i32) (param $fromY i32)
+            (func $notify_piecemoved (param $from_x i32) (param $from_y i32)
                                       (param $toX i32) (param $toY i32) (result i32)))
     (import "events" "piececrowned"
             (func $notify_piececrowned (param $pieceX i32) (param $pieceY i32)))
@@ -198,18 +198,18 @@
     )
 
     ;; Determine if a move is valid.
-    (func $isValidMove (param $fromX i32) (param $fromY i32)
+    (func $isValidMove (param $from_x i32) (param $from_y i32)
                        (param $toX i32) (param $toY i32) (result i32)
         (local $player i32)
         (local $target i32)
 
-        (set_local $player (call $getPiece (get_local $fromX) (get_local $fromY)))
+        (set_local $player (call $getPiece (get_local $from_x) (get_local $from_y)))
         (set_local $target (call $getPiece (get_local $toX) (get_local $toY)))
 
         (if (result i32)
             (block (result i32)
                 (i32.and
-                    (call $validJumpDistance (get_local $fromY) (get_local $toY))
+                    (call $validJumpDistance (get_local $from_y) (get_local $toY))
                     (i32.and
                         (call $isPlayersTurn (get_local $player))
                         ;; target must be unoccupied.
@@ -246,15 +246,15 @@
     )
 
     ;; Exported move function to be called by the game host.
-    (func $move (param $fromX i32) (param $fromY i32)
+    (func $move (param $from_x i32) (param $from_y i32)
                 (param $toX i32) (param $toY i32) (result i32)
         (if (result i32)
             (block (result i32)
-                (call $isValidMove (get_local $fromX) (get_local $fromY)
+                (call $isValidMove (get_local $from_x) (get_local $from_y)
                                    (get_local $toX) (get_local $toY))
             )
             (then
-                (call $do_move (get_local $fromX) (get_local $fromY)
+                (call $do_move (get_local $from_x) (get_local $from_y)
                                (get_local $toX) (get_local $toY))
             )
             (else
@@ -267,17 +267,17 @@
     ;; Currently not handled:
     ;;  - removing opponent piece during a jump.
     ;;  - detecting win condition
-    (func $do_move (param $fromX i32) (param $fromY i32)
+    (func $do_move (param $from_x i32) (param $from_y i32)
                    (param $toX i32) (param $toY i32) (result i32)
         (local $curpiece i32)
-        (set_local $curpiece (call $getPiece (get_local $fromX) (get_local $fromY)))
+        (set_local $curpiece (call $getPiece (get_local $from_x) (get_local $from_y)))
 
         (call $toggleTurnOwner)
         (call $setPiece (get_local $toX) (get_local $toY) (get_local $curpiece))
-        (call $setPiece (get_local $fromX) (get_local $fromY) (i32.const 0))
+        (call $setPiece (get_local $from_x) (get_local $from_y) (i32.const 0))
         (if (call $shouldCrown (get_local $toY) (get_local $curpiece))
             (then (call $crownPiece (get_local $toX) (get_local $toY))))
-        (call $notify_piecemoved (get_local $fromX) (get_local $fromY)
+        (call $notify_piecemoved (get_local $from_x) (get_local $from_y)
                                  (get_local $toX) (get_local $toY))
         (return (i32.const 1))
     )

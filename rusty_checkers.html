@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add WASM</title>
+    <style>
+        body {
+            background-color: rgb(255, 255, 255);
+        }
+    </style>
+</head>
+<body>
+<span id="container"></span>
+<script type="text/javascript">
+    async function init() {
+        try {
+            const res = await fetch('/wasm/rusty_checkers.wasm');
+            const buffer = await res.arrayBuffer();
+            const wasm = await WebAssembly.instantiate(buffer, {
+                env: {
+                    notify_piecemoved: (fX, fY, tX, tY) => {
+                        console.log(`A piece moved from (${fX}, ${fY}) to (${tX}, ${tY})`);
+                    },
+                    notify_piececrowned: (x, y) => {
+                        console.log(`A piece was crowned at (${x}, ${y})`);
+                    }
+                },
+            });
+
+            console.log('Loaded WASM module');
+
+            const instance = wasm.instance;
+            console.log('instance', instance);
+
+            const {
+                get_piece: getPiece,
+                get_current_turn: getTurnOwner,
+                move_piece: move,
+            } = instance.exports;
+
+            console.log('At start, current turn is', getTurnOwner());
+            let piece = getPiece(0, 7);
+            console.debug('Piece at (0,7) is', piece);
+
+            let moveRes = move(0, 5, 1, 4); // B
+            console.debug('First move result:', moveRes);
+            console.debug('Turn after move:', getTurnOwner());
+
+            let bad = move(1, 4, 2, 3); // Illegal move
+            console.debug('Illegal move result:', bad);
+            console.debug('Turn after illegal move:', getTurnOwner());
+
+            // B - move the crowned piece out
+            document.getElementById('container').innerText = move(0, 0, 0, 2);
+            console.log('At end, turn owner is', getTurnOwner());
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

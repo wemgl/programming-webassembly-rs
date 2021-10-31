@@ -1,0 +1,11 @@
+[package]
+name = "programming-webassembly-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mut_static = "5.0.0"
+lazy_static = "1.0.2"
+
+[lib]
+crate-type = ["cdylib"]

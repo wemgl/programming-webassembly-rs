@@ -20,8 +20,14 @@ func checkers(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+func rustyCheckers(w http.ResponseWriter, r *http.Request) {
+	body, _ := ioutil.ReadFile("./rusty_checkers.html")
+	w.Write(body)
+}
+
 func main() {
 	http.HandleFunc("/checkersTest", checkersTest)
+	http.HandleFunc("/rustyCheckers", rustyCheckers)
 	http.HandleFunc("/checkers", checkers)
 	http.HandleFunc("/", index)
 	http.Handle("/wasm/", http.StripPrefix("/wasm/", http.FileServer(http.Dir("wasm"))))
